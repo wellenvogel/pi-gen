@@ -1,0 +1,9 @@
+gpsd
+python-gps
+bluetooth
+python-bluez
+python-pyudev
+python-serial
+python-gdal
+python-netifaces
+python-pil
