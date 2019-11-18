@@ -7,3 +7,9 @@ python-serial
 python-gdal
 python-netifaces
 python-pil
+parted
+bc
+hostapd
+dnsmasq
+mpg123
+ntp
