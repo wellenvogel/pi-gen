@@ -1,0 +1,3 @@
+deb https://www.free-x.de/debian buster main contrib non-free
+deb https://deb.nodesource.com/node_10.x buster main
+
