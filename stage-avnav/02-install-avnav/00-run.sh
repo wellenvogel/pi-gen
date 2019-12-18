@@ -2,6 +2,7 @@
 
 install -m 644 files/avnav_20191216_all.deb "${ROOTFS_DIR}/tmp"
 install -m 644 files/avnav-raspi_20191216_all.deb "${ROOTFS_DIR}/tmp"
+cat files/figlet >> ${ROOTFS_DIR}/etc/motd
 
 on_chroot << EOF
 dpkg -i /tmp/avnav_20191216_all.deb
@@ -11,6 +12,5 @@ systemctl daemon-reload
 systemctl disable hostapd.service
 systemctl disable gpsd.socket gpsd.service
 systemctl disable ntp.service
-cat files/figlet >> /etc/motd
 EOF
 
