@@ -1,0 +1,29 @@
+{
+  "interfaces": {},
+  "ssl": false,
+  "pipedProviders": [
+    {
+      "pipeElements": [
+        {
+          "type": "providers/simple",
+          "options": {
+            "logging": false,
+            "type": "NMEA0183",
+            "subOptions": {
+              "validateChecksum": true,
+              "type": "tcp",
+              "host": "localhost",
+              "port": "34567"
+            }
+          }
+        }
+      ],
+      "id": "AVNAV_NMEA0183",
+      "enabled": true
+    }
+  ],
+  "security": {
+    "strategy": "./tokensecurity"
+  }
+}
+
