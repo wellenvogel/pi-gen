@@ -10,6 +10,10 @@ install -m 775 -o 1000 -g 1000 files/signalk-server "${ROOTFS_DIR}/home/${FIRST_
 install -m 644 files/signalk.socket  "${ROOTFS_DIR}/etc/systemd/system/"
 install -m 644 files/signalk.service "${ROOTFS_DIR}/etc/systemd/system/"
 
+#logrotate
+install -m 644 files/signalk "${ROOTFS_DIR}/etc/logrotate.d/"
+
+
 on_chroot << EOF
 systemctl daemon-reload
 systemctl enable signalk.service
