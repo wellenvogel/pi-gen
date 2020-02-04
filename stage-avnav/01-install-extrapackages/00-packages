@@ -7,6 +7,7 @@ python-serial
 python-gdal
 python-netifaces
 python-pil
+python-pigpio
 parted
 bc
 hostapd
