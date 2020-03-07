@@ -55,6 +55,12 @@ is_pizero() {
    return $?
 }
 
+is_pifour() {
+   grep -q "^Revision\s*:\s*[ 123][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]11[0-9a-fA-F]$" /proc/cpuinfo
+   return $?
+}
+
+
 get_pi_type() {
    if is_pione; then
       echo 1
@@ -62,6 +68,8 @@ get_pi_type() {
       echo 2
    elif is_pithree; then
       echo 3
+   elif is_pifour; then
+      echo 4
    else
       echo 0
    fi
@@ -172,14 +180,20 @@ set_console() {
 }
 
 bluetooth_status() {
-  if ! is_pithree; then
-    echo "N/A"
-  else
+  if is_pithree; then
     if grep -q -E "^dtoverlay=pi3-disable-bt" $CONFIG; then
       echo "disabled"
     else
       echo "enabled"
     fi
+  elif is_pifour; then
+    if grep -q -E "^dtoverlay=pi3-disable-bt" $CONFIG; then
+      echo "disabled"
+    else
+      echo "enabled"
+    fi
+  else
+    echo "N/A"
   fi
 }
 
@@ -232,6 +246,9 @@ do
     if is_pithree; then
       printf "Disabling Bluetooth.\n"
       set_bluetooth disable
+    elif is_pifour; then
+      printf "Disabling Bluetooth.\n"
+      set_bluetooth disable
     else
       printf "Bluetooth is not available on Raspberry Pi $(get_pi_type).\n"
     fi
@@ -246,6 +263,9 @@ do
     printf "Enabling console on UART.\n"
     set_console enable
     if is_pithree; then
+      printf "Enabling Bluetooth.\n"
+      set_bluetooth enable
+    elif is_pifour; then
       printf "Enabling Bluetooth.\n"
       set_bluetooth enable
     else
