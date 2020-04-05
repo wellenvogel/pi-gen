@@ -66,8 +66,8 @@ exit 1
 fi
 
 #inside container
-export WORK_DIR="/work/${IMG_NAME}"
-export DEPLOY_DIR="/deploy"
+WORK_DIR="/work/${IMG_NAME}"
+DEPLOY_DIR="/deploy"
 # Ensure the Git Hash is recorded before entering the docker container
 GIT_HASH=${GIT_HASH:-"$(git rev-parse HEAD)"}
 
@@ -88,7 +88,7 @@ BUILD_OPTS="$(echo "${BUILD_OPTS:-}" | sed -E 's@\-c\s?([^ ]+)@-c '$LOCAL_CFG'@'
 
 
 ${DOCKER} build -t pi-gen "${DIR}"
-trap 'echo "got CTRL+C... please wait 5s" && ${DOCKER} stop -t 5 ${CONTAINER_NAME}' SIGINT SIGTERM
+trap 'echo "signalhandler:... please wait " && ${DOCKER} stop -t 2 ${CONTAINER_NAME}' SIGINT SIGTERM 0
 if [ "${CONTAINER_EXISTS}" != "" ]; then
 	${DOCKER} start ${CONTAINER_NAME}
 else
@@ -97,12 +97,11 @@ else
 		pi-gen \
 		bash -c "while true ; do sleep 1; done"
 fi
-time ${DOCKER} exec ${CONTAINER_NAME} \
+( time ${DOCKER} exec ${CONTAINER_NAME} \
 	bash -e -o pipefail -c "dpkg-reconfigure qemu-user-static &&
-	cd /pi-gen; WORK_DIR=$WORK_DIR DEPLOY_DIR=$DEPLOY_DIR GIT_HASH=$GIT_HASH ./build.sh ${BUILD_OPTS} &&
-	rsync -av work/*/build.log deploy/" &
-	wait "$!"
-
+	cd /pi-gen; WORK_DIR=$WORK_DIR DEPLOY_DIR=$DEPLOY_DIR GIT_HASH=$GIT_HASH ./build.sh ${BUILD_OPTS}" )
+echo "stopping ${CONTAINER_NAME}"
+${DOCKER} stop -t 2 ${CONTAINER_NAME}
 if [ "$TAG" = "" ] ; then
 	echo "build finished, no image created, container=$CONTAINER_NAME"
 	exit 0

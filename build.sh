@@ -230,10 +230,6 @@ for STAGE_DIR in $STAGE_LIST; do
 	run_stage
 done
 
-if [ "$PRECOMMAND" != "" ] ; then
-	$PRECOMMAND
-fi
-
 if [ -x postrun.sh ]; then
 	log "Begin postrun.sh"
 	cd "${BASE_DIR}"
