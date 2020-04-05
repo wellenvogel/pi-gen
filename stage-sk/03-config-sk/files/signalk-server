@@ -1,6 +1,0 @@
-#!/bin/sh
-pdir=`dirname $0`
-logdir="$pdir/log"
-[ ! -d "$logdir" ] && mkdir -p $logdir
-/usr/lib/node_modules/signalk-server/bin/signalk-server -c /home/pi/.signalk $* >> $logdir/signalk.log 2>&1
-

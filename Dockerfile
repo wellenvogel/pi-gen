@@ -9,6 +9,6 @@ RUN apt-get -y update && \
         bsdtar libcap2-bin rsync grep udev xz-utils curl xxd file kmod\
     && rm -rf /var/lib/apt/lists/*
 
-COPY . /pi-gen/
+#COPY . /pi-gen/
 
-VOLUME [ "/pi-gen/work", "/pi-gen/deploy"]
+#VOLUME [ "/pi-gen/work", "/pi-gen/deploy"]

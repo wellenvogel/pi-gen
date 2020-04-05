@@ -1,5 +1,6 @@
 #!/bin/bash -eu
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+cd $DIR || exit 1
 
 BUILD_OPTS="$*"
 
@@ -19,11 +20,15 @@ if [ -f "${DIR}/config" ]; then
 	CONFIG_FILE="${DIR}/config"
 fi
 
-while getopts "c:" flag
+TAG=""
+while getopts "c:t:" flag
 do
 	case "${flag}" in
 		c)
 			CONFIG_FILE="${OPTARG}"
+			;;
+		t)
+			TAG="${OPTARG}"
 			;;
 		*)
 			;;
@@ -44,9 +49,15 @@ else
 	source "${CONFIG_FILE}"
 fi
 
+LOCAL_CFG="_config"
+
+[ -f $LOCAL_CFG ] && rm -f $LOCAL_CFG
+
+cp $CONFIG_FILE $LOCAL_CFG || exit 1
+
 CONTAINER_NAME=${CONTAINER_NAME:-pigen_work}
 CONTINUE=${CONTINUE:-0}
-PRESERVE_CONTAINER=${PRESERVE_CONTAINER:-0}
+PRESERVE_CONTAINER=${PRESERVE_CONTAINER:-1}
 
 if [ -z "${IMG_NAME}" ]; then
 	echo "IMG_NAME not set in 'config'" 1>&2
@@ -54,6 +65,9 @@ if [ -z "${IMG_NAME}" ]; then
 exit 1
 fi
 
+#inside container
+export WORK_DIR="/work/${IMG_NAME}"
+export DEPLOY_DIR="/deploy"
 # Ensure the Git Hash is recorded before entering the docker container
 GIT_HASH=${GIT_HASH:-"$(git rev-parse HEAD)"}
 
@@ -69,40 +83,28 @@ if [ "${CONTAINER_EXISTS}" != "" ] && [ "${CONTINUE}" != "1" ]; then
 	echo "  ${DOCKER} rm -v ${CONTAINER_NAME}"
 	exit 1
 fi
-
 # Modify original build-options to allow config file to be mounted in the docker container
-BUILD_OPTS="$(echo "${BUILD_OPTS:-}" | sed -E 's@\-c\s?([^ ]+)@-c /config@')"
+BUILD_OPTS="$(echo "${BUILD_OPTS:-}" | sed -E 's@\-c\s?([^ ]+)@-c '$LOCAL_CFG'@')"
+
 
 ${DOCKER} build -t pi-gen "${DIR}"
+trap 'echo "got CTRL+C... please wait 5s" && ${DOCKER} stop -t 5 ${CONTAINER_NAME}' SIGINT SIGTERM
 if [ "${CONTAINER_EXISTS}" != "" ]; then
-	trap 'echo "got CTRL+C... please wait 5s" && ${DOCKER} stop -t 5 ${CONTAINER_NAME}_cont' SIGINT SIGTERM
-	time ${DOCKER} run --rm --privileged \
-		--volume "${CONFIG_FILE}":/config:ro \
-		-e "GIT_HASH=${GIT_HASH}" \
-		--volumes-from="${CONTAINER_NAME}" --name "${CONTAINER_NAME}_cont" \
-		pi-gen \
-		bash -e -o pipefail -c "dpkg-reconfigure qemu-user-static &&
-	cd /pi-gen; ./build.sh ${BUILD_OPTS} &&
-	rsync -av work/*/build.log deploy/" &
-	wait "$!"
+	${DOCKER} start ${CONTAINER_NAME}
 else
-	trap 'echo "got CTRL+C... please wait 5s" && ${DOCKER} stop -t 5 ${CONTAINER_NAME}' SIGINT SIGTERM
-	time ${DOCKER} run --name "${CONTAINER_NAME}" --privileged \
-		--volume "${CONFIG_FILE}":/config:ro \
-		-e "GIT_HASH=${GIT_HASH}" \
+	${DOCKER} run --name "${CONTAINER_NAME}" --privileged -d \
+		--volume "${DIR}":/pi-gen:ro \
 		pi-gen \
-		bash -e -o pipefail -c "dpkg-reconfigure qemu-user-static &&
-	cd /pi-gen; ./build.sh ${BUILD_OPTS} &&
+		bash -c "while true ; do sleep 1; done"
+fi
+time ${DOCKER} exec ${CONTAINER_NAME} \
+	bash -e -o pipefail -c "dpkg-reconfigure qemu-user-static &&
+	cd /pi-gen; WORK_DIR=$WORK_DIR DEPLOY_DIR=$DEPLOY_DIR GIT_HASH=$GIT_HASH ./build.sh ${BUILD_OPTS} &&
 	rsync -av work/*/build.log deploy/" &
 	wait "$!"
-fi
-echo "copying results from deploy/"
-${DOCKER} cp "${CONTAINER_NAME}":/pi-gen/deploy .
-ls -lah deploy
 
-# cleanup
-if [ "${PRESERVE_CONTAINER}" != "1" ]; then
-	${DOCKER} rm -v "${CONTAINER_NAME}"
+if [ "$TAG" = "" ] ; then
+	echo "build finished, no image created, container=$CONTAINER_NAME"
+	exit 0
 fi
-
-echo "Done! Your image(s) should be in deploy/"
+${DOCKER} commit "${CONTAINER_NAME}" "${TAG}"
