@@ -106,4 +106,5 @@ if [ "$TAG" = "" ] ; then
 	echo "build finished, no image created, container=$CONTAINER_NAME"
 	exit 0
 fi
+echo "commiting to ${TAG}"
 ${DOCKER} commit "${CONTAINER_NAME}" "${TAG}"
