@@ -1,2 +1,5 @@
 nodejs
+libnss-mdns 
+libavahi-compat-libdnssd-dev
+avahi-utils
 
