@@ -4,7 +4,7 @@ systemctl disable hostapd.service
 systemctl disable gpsd.socket gpsd.service
 systemctl disable ntp.service
 if [ "$AVNAV_DAILY" != "1" ] ; then
-	apt install -y avnav avnav-raspi
+	apt install -y avnav avnav-raspi avnav-oesenc avnav-ocharts-plugin
 else
 	base="https://www.wellenvogel.de/software/avnav/downloads/daily/latest"
 	curl -k -o /tmp/avnav.deb  "$base/avnav_latest_all.deb" || exit 1
