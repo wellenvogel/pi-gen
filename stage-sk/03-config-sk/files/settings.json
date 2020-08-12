@@ -41,6 +41,10 @@
   ],
   "security": {
     "strategy": "./tokensecurity"
-  }
+  },
+  "mdns": true,
+  "wsCompression": false,
+  "enablePluginLogging": true,
+  "pruneContextsMinutes": 60
 }
 
