@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+MSDOS_UUID="9C5613A0"
+EXT4_UUID="2fc33809-ab64-422c-9903-741e21641ad3"
+
 IMG_FILE="${STAGE_WORK_DIR}/${IMG_FILENAME}${IMG_SUFFIX}.img"
 
 unmount_image "${IMG_FILE}"
@@ -74,8 +77,9 @@ for FEATURE in metadata_csum 64bit; do
 	    ROOT_FEATURES="^$FEATURE,$ROOT_FEATURES"
 	fi
 done
-mkdosfs -n boot -F 32 -v "$BOOT_DEV" > /dev/null
-mkfs.ext4 -L rootfs -O "$ROOT_FEATURES" "$ROOT_DEV" > /dev/null
+set -x
+mkdosfs -i "$MSDOS_UUID" -n boot -F 32 -v "$BOOT_DEV" > /dev/null
+mkfs.ext4 -U "$EXT4_UUID" -L rootfs -O "$ROOT_FEATURES" "$ROOT_DEV" > /dev/null
 
 mount -v "$ROOT_DEV" "${ROOTFS_DIR}" -t ext4
 mkdir -p "${ROOTFS_DIR}/boot"
