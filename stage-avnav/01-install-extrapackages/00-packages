@@ -14,3 +14,5 @@ hostapd
 dnsmasq
 mpg123
 ntp
+ntpdate
+rdate
