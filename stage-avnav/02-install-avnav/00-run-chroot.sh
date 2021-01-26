@@ -12,5 +12,5 @@ else
 	apt install -y /tmp/avnav.deb
 	apt install -y /tmp/avnav-raspi.deb
 fi
-apt install -y avnav-oesenc avnav-ocharts-plugin avnav-history-plugin
+apt install -y avnav-oesenc avnav-ocharts-plugin avnav-history-plugin avnav-update-plugin
 
